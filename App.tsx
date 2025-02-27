@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity, Appearance } from 'react-native';
 
 const API_KEY = '34ac3f73c02b63bccac93714f16e9609';
-const SUGGESTED_CITIES = ['Paris', 'Londres', 'New York', 'Tokyo', 'Sydney', 'Berlin', 'Moscou'];
+const SUGGESTED_CITIES = ['Paris', 'Londres', 'New York', 'Tokyo', 'Sydney', 'Berlin', 'Moscou', 'Antananarivo'];
 
 const App = () => {
     const [city, setCity] = useState('');
     const [weather, setWeather] = useState(null);
     const [loading, setLoading] = useState(false);
     const [filteredCities, setFilteredCities] = useState([]);
+    const [colorScheme, setColorScheme] = useState(Appearance.getColorScheme()); // Obtenir le thème actuel
+
+    useEffect(() => {
+        const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+            setColorScheme(colorScheme); // Mettre à jour le thème en cas de changement
+        });
+        return () => subscription.remove();
+    }, []);
 
     const fetchWeather = async () => {
         if (!city) return;
@@ -42,6 +50,56 @@ const App = () => {
         }
     };
 
+    // Styles conditionnels selon le thème
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+            backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#E1C6FF', // Sombre ou clair
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            color: colorScheme === 'dark' ? '#D3D3D3' : '#4B0082', // Texte clair ou foncé
+        },
+        input: {
+            width: '100%',
+            padding: 10,
+            borderWidth: 1,
+            borderRadius: 5,
+            marginBottom: 10,
+            borderColor: colorScheme === 'dark' ? '#8A2BE2' : '#8A2BE2', // Garde la même bordure
+            backgroundColor: colorScheme === 'dark' ? '#555' : '#fff', // Sombre ou clair
+            color: colorScheme === 'dark' ? '#fff' : '#000', // Texte en fonction du thème
+        },
+        suggestion: {
+            padding: 10,
+            borderBottomWidth: 1,
+            borderColor: '#8A2BE2',
+            width: '100%',
+            color: colorScheme === 'dark' ? '#D3D3D3' : '#4B0082', // Texte clair ou foncé
+        },
+        result: { marginTop: 20, alignItems: 'center' },
+        city: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            color: colorScheme === 'dark' ? '#8A2BE2' : '#8A2BE2', // Violet, peu importe le thème
+        },
+        temp: {
+            fontSize: 36,
+            fontWeight: 'bold',
+            color: colorScheme === 'dark' ? '#8A2BE2' : '#8A2BE2', // Violet pour la température
+        },
+        desc: {
+            fontSize: 18,
+            fontStyle: 'italic',
+            color: colorScheme === 'dark' ? '#D3D3D3' : '#4B0082', // Violet foncé en clair, clair en sombre
+        }
+    });
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Météo</Text>
@@ -74,16 +132,5 @@ const App = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#E1C6FF' }, // Violet clair en arrière-plan
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#4B0082' }, // Violet foncé pour le titre
-    input: { width: '100%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10, borderColor: '#8A2BE2' }, // Violet pour la bordure du champ
-    suggestion: { padding: 10, borderBottomWidth: 1, borderColor: '#8A2BE2', width: '100%', color: '#4B0082' }, // Violet pour les suggestions
-    result: { marginTop: 20, alignItems: 'center' },
-    city: { fontSize: 20, fontWeight: 'bold', color: '#8A2BE2' }, // Violet pour le nom de la ville
-    temp: { fontSize: 36, fontWeight: 'bold', color: '#8A2BE2' }, // Violet pour la température
-    desc: { fontSize: 18, fontStyle: 'italic', color: '#4B0082' } // Violet foncé pour la description
-});
 
 export default App;
