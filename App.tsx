@@ -1,131 +1,89 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const API_KEY = '34ac3f73c02b63bccac93714f16e9609';
+const SUGGESTED_CITIES = ['Paris', 'Londres', 'New York', 'Tokyo', 'Sydney', 'Berlin', 'Moscou'];
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+    const [city, setCity] = useState('');
+    const [weather, setWeather] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [filteredCities, setFilteredCities] = useState([]);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+    const fetchWeather = async () => {
+        if (!city) return;
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=fr`
+            );
+            const data = await response.json();
+            console.log(data); // 🔍 Vérifiez ce qui est retourné
+            if (response.ok) {
+                setWeather(data);
+            } else {
+                setWeather(null);
+                alert(data.message || "Erreur inconnue");
+            }
+        } catch (error) {
+            console.log(error);
+            alert("Erreur de récupération des données.");
+        }
+        setLoading(false);
+    };
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+    const handleCityChange = (text) => {
+        setCity(text);
+        if (text.length > 0) {
+            const filtered = SUGGESTED_CITIES.filter(c => c.toLowerCase().startsWith(text.toLowerCase()));
+            setFilteredCities(filtered);
+        } else {
+            setFilteredCities([]);
+        }
+    };
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
-
-  return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Météo</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Entrez une ville"
+                value={city}
+                onChangeText={handleCityChange}
+            />
+            {filteredCities.length > 0 && (
+                <FlatList
+                    data={filteredCities}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => { setCity(item); setFilteredCities([]); }}>
+                            <Text style={styles.suggestion}>{item}</Text>
+                        </TouchableOpacity>
+                    )}
+                />
+            )}
+            <Button title="Rechercher" onPress={fetchWeather} color="#8A2BE2" />
+            {loading && <ActivityIndicator size="large" color="#8A2BE2" />}
+            {weather && (
+                <View style={styles.result}>
+                    <Text style={styles.city}>{weather.name}</Text>
+                    <Text style={styles.temp}>{weather.main.temp}°C</Text>
+                    <Text style={styles.desc}>{weather.weather[0].description}</Text>
+                </View>
+            )}
         </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
+    );
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#E1C6FF' }, // Violet clair en arrière-plan
+    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#4B0082' }, // Violet foncé pour le titre
+    input: { width: '100%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10, borderColor: '#8A2BE2' }, // Violet pour la bordure du champ
+    suggestion: { padding: 10, borderBottomWidth: 1, borderColor: '#8A2BE2', width: '100%', color: '#4B0082' }, // Violet pour les suggestions
+    result: { marginTop: 20, alignItems: 'center' },
+    city: { fontSize: 20, fontWeight: 'bold', color: '#8A2BE2' }, // Violet pour le nom de la ville
+    temp: { fontSize: 36, fontWeight: 'bold', color: '#8A2BE2' }, // Violet pour la température
+    desc: { fontSize: 18, fontStyle: 'italic', color: '#4B0082' } // Violet foncé pour la description
 });
 
 export default App;
