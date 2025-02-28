@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity, Appearance, Dimensions } from 'react-native';
+import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity, Appearance, Dimensions, Image } from 'react-native';
 
 import SplashScreen from "react-native-splash-screen";
 
@@ -72,8 +72,11 @@ const App = () => {
             alignItems: 'center',
             padding: 20,
             backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#E1C6FF',
-            flexDirection: orientation === 'portrait' ? 'column' : 'column', // En portrait ou paysage, on garde la disposition en colonne
-            flexWrap: 'wrap', // Autoriser les éléments à s'ajuster en paysage
+        },
+        image: {
+            width: 100,
+            height: 100,
+            marginBottom: 10,
         },
         title: {
             fontSize: 24,
@@ -115,13 +118,16 @@ const App = () => {
             color: colorScheme === 'dark' ? '#D3D3D3' : '#4B0082',
         },
         button: {
-            width: orientation === 'portrait' ? '100%' : 'auto', // Assurer que le bouton prend toute la largeur en portrait
+            width: orientation === 'portrait' ? '100%' : 'auto',
             marginTop: 10,
         }
     });
 
     return (
         <View style={styles.container}>
+            {orientation === 'portrait' && (
+                <Image source={require('./assets/weather.png')} style={styles.image} />
+            )}
             <Text style={styles.title}>Météo</Text>
             <TextInput
                 style={styles.input}
@@ -145,9 +151,7 @@ const App = () => {
             {weather && (
                 <View style={styles.result}>
                     <Text style={styles.city}>{weather.name}</Text>
-                    <Text style={styles.temp}>
-                        {weather.main.temp}°C {/* Affichage de la température avec le symbole °C */}
-                    </Text>
+                    <Text style={styles.temp}>{weather.main.temp}°C</Text>
                     <Text style={styles.desc}>{weather.weather[0].description}</Text>
                 </View>
             )}
