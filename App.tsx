@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, FlatList, TouchableOpacity, Appearance, Dimensions } from 'react-native';
 
+import SplashScreen from "react-native-splash-screen";
+
 const API_KEY = '34ac3f73c02b63bccac93714f16e9609';
 const SUGGESTED_CITIES = ['Paris', 'Londres', 'New York', 'Tokyo', 'Sydney', 'Berlin', 'Moscou'];
 
@@ -13,6 +15,7 @@ const App = () => {
     const [orientation, setOrientation] = useState(Dimensions.get('window').width > Dimensions.get('window').height ? 'landscape' : 'portrait');
 
     useEffect(() => {
+        SplashScreen.hide();
         const subscription = Appearance.addChangeListener(({ colorScheme }) => {
             setColorScheme(colorScheme);
         });
